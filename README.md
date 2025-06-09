@@ -1,5 +1,5 @@
-Markdown related library for ALS (Alan's Learning System)
+Markdown related library for [als_server](https://github.com/wsva/als_server)
 
 Provided:
-- convert markdown string to html
-- convert to pdf (simply for reading)
+- convert markdown to html
+- convert markdown to pdf (to read on tablet)

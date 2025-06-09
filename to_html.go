@@ -12,7 +12,10 @@ const (
 	topContainer = "<div id='top-container' class='top-container'></div>\n"
 )
 
-// return TOC, body
+/*
+return Table of Content, HTML Body
+tocHeading: default ☰
+*/
 func ToHTML(tocHeading, content string) (string, string) {
 	toc := NewTOC(tocHeading)
 	var body []string

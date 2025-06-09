@@ -15,8 +15,6 @@ var RobotoRegularBytes []byte
 var RobotoBoldBytes []byte
 
 type PDF struct {
-	SectionList []Section
-
 	// write each section from a new page
 	NewPage bool
 
@@ -39,14 +37,14 @@ type PDF struct {
 	ParagraphOffset float64
 }
 
-func (p *PDF) Generate() *fpdf.Fpdf {
+func (p *PDF) Generate(sectionList []Section) *fpdf.Fpdf {
 	pdf := fpdf.New("P", "mm", "A4", "")
 
 	pdf.SetMargins(p.MarginLeft, p.MarginTop, p.MarginRight)
 	pdf.AddUTF8FontFromBytes("Roboto", "", RobotoRegularBytes)
 	pdf.AddUTF8FontFromBytes("Roboto", "B", RobotoBoldBytes)
 
-	for k1, sec := range p.SectionList {
+	for k1, sec := range sectionList {
 		if k1 == 0 || p.NewPage {
 			pdf.AddPage()
 		}

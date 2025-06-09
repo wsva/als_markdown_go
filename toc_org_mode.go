@@ -2,16 +2,15 @@ package als_md
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
 /*
-仿照Emacs中org-mode导出的html格式
-*/
+similiar to html exported by Emacs org-mode
 
-/*
 <div id="table-of-contents">
-<h2>目录</h2>
+<h2>≡</h2>
 <div id="text-table-of-contents">
 <ul>
 <li><a href="#orge7b5326">1. Linux</a></li>
@@ -59,16 +58,21 @@ func (t *TOCSectionNumber) Len() int {
 	return len(t.n)
 }
 
-// 下一级的第一个章节，再追加一个1即可
+/*
+To create the first child section of the next level,
+simply add a 1 to the end of the current section number.
+*/
 func (t *TOCSectionNumber) FirstChild() TOCSectionNumber {
-	section := append([]int{}, t.n...)
+	section := slices.Clone(t.n)
 	section = append(section, 1)
 	return NewTOCSection(section)
 }
 
-// 同一级的下一个章节，末尾序号加1即可
+/*
+For the next section at the same level, simply increment the last number.
+*/
 func (t *TOCSectionNumber) Next() TOCSectionNumber {
-	section := append([]int{}, t.n...)
+	section := slices.Clone(t.n)
 	section[len(section)-1] += 1
 	return NewTOCSection(section)
 }
@@ -155,7 +159,11 @@ type TOC struct {
 	List    []tocItem
 }
 
+// if heading == "", use defalut: ☰
 func NewTOC(heading string) *TOC {
+	if heading == "" {
+		heading = "☰"
+	}
 	return &TOC{
 		Heading: heading,
 	}
@@ -163,9 +171,9 @@ func NewTOC(heading string) *TOC {
 
 func (t *TOC) NewSection(depth int) TOCSectionNumber {
 	/*
-		第一个章节
-		如果depth!=1，那就要一级一级地补上
-		这样才能确保后面的章节序号都能很方便的计算出来
+		This is the first chapter.
+		If depth != 1, we need to insert missing levels step by step.
+		This way, the numbering of later chapters can be computed easily.
 	*/
 	if len(t.List) == 0 {
 		s := NewTOCSection([]int{1})
@@ -177,10 +185,10 @@ func (t *TOC) NewSection(depth int) TOCSectionNumber {
 	}
 
 	/*
-		不是第一个章节了
-		首先要找到前一个同级的Section
-		如果找不到，那就找上级的
-		因为第一个章节已经全量初始化了，所以肯定能找到
+		Since this is not the first chapter,
+		we first try to find the previous section at the same depth.
+		If not found, we fall back to a higher-level section.
+		The first chapter has already been fully initialized, so there will always be a valid reference.
 	*/
 	var last tocItem
 	for i := len(t.List) - 1; i >= 0; i-- {
@@ -191,16 +199,16 @@ func (t *TOC) NewSection(depth int) TOCSectionNumber {
 	}
 
 	/*
-		找到了前一个同级的
-		直接把Section最后一位加一就行了
+		Once the previous section at the same level is found,
+		simply increment the last segment of its section number.
 	*/
 	if last.Depth() == depth {
 		return last.Section.Next()
 	}
 
 	/*
-		如果没找到同级的，那么肯定就是上级的了
-		可能相差多级，要把缺的补上
+		If no sibling section is found, we can assume it belongs to a parent level.
+		There may be several levels missing, so we need to fill them accordingly.
 	*/
 	s := last.Section
 	for i := 1; i < depth-last.Depth(); i++ {

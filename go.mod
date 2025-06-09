@@ -1,4 +1,4 @@
-module github.com/wsva/als_markdown_go
+module github.com/wsva/als_server_markdown
 
 go 1.21.6
 
